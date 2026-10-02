@@ -5,9 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>할 일</title>
   <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --text: #1f2328;
+      --muted: #6e7781;
+      --border: #d0d7de;
+      --line: #e6e8eb;
+      --accent: #0969da;
+      --progress: #2da44e;
+      --work-bg: #ddf4ff;
+      --work-text: #0550ae;
+      --personal-bg: #dafbe1;
+      --personal-text: #116329;
+      --study-bg: #fff1e5;
+      --study-text: #953800;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
     body {
       margin: 0;
+      background: var(--bg);
+      color: var(--text);
       font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+      line-height: 1.5;
     }
 
     .app {
@@ -16,9 +44,180 @@
       padding: 16px;
     }
 
+    h1 {
+      margin: 0 0 12px;
+      font-size: 1.5rem;
+    }
+
+    input[type="text"],
+    select,
+    button {
+      font: inherit;
+      color: inherit;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--bg);
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* 헤더: 날짜 이동과 진행률 */
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #current-date {
+      flex: 1;
+      text-align: center;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 12px 0 16px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--line);
+      overflow: hidden;
+    }
+
+    #progress-fill {
+      width: 0;
+      height: 100%;
+      background: var(--progress);
+      transition: width 0.2s;
+    }
+
+    #progress-text {
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 입력줄 */
+    #add-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    #new-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    #add-form button[type="submit"] {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    /* 필터 탭 */
+    #filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 16px 0 8px;
+    }
+
+    #filters button.active {
+      border-color: var(--text);
+      background: var(--text);
+      color: var(--surface);
+    }
+
+    /* 목록 */
+    #task-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      background: var(--surface);
+      border-radius: 8px;
+    }
+
+    .task {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .task:last-child {
+      border-bottom: none;
+    }
+
+    /* 버튼 묶음은 함께 줄바꿈되고 오른쪽에 붙는다 */
+    .actions {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .task button {
+      padding: 2px 8px;
+      font-size: 0.875rem;
+    }
+
+    .task-text,
+    .edit-text {
+      flex: 1 1 120px;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
     .task.done .task-text {
       text-decoration: line-through;
-      opacity: 0.5;
+      color: var(--muted);
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .badge-work {
+      background: var(--work-bg);
+      color: var(--work-text);
+    }
+
+    .badge-personal {
+      background: var(--personal-bg);
+      color: var(--personal-text);
+    }
+
+    .badge-study {
+      background: var(--study-bg);
+      color: var(--study-text);
+    }
+
+    #empty-message {
+      margin: 0;
+      padding: 24px 0;
+      text-align: center;
+      color: var(--muted);
     }
   </style>
 </head>
@@ -274,12 +473,15 @@
       badge.className = "badge badge-" + task.category;
       badge.textContent = CATEGORY_LABELS[task.category];
 
-      li.append(checkbox, text, badge);
+      const actions = document.createElement("span");
+      actions.className = "actions";
       // 오늘보다 이전 날짜의 미완료 항목만 오늘로 옮길 수 있다 ("YYYY-MM-DD"는 문자열 비교로 앞뒤를 가린다)
       if (!task.done && task.date < todayString()) {
-        li.append(createButton("오늘로", "move-today"));
+        actions.append(createButton("오늘로", "move-today"));
       }
-      li.append(createButton("수정", "edit"), createButton("삭제", "delete"));
+      actions.append(createButton("수정", "edit"), createButton("삭제", "delete"));
+
+      li.append(checkbox, text, badge, actions);
       return li;
     }
 
@@ -302,7 +504,11 @@
       }
       select.value = task.category;
 
-      li.append(input, select, createButton("저장", "save"), createButton("취소", "cancel"));
+      const actions = document.createElement("span");
+      actions.className = "actions";
+      actions.append(createButton("저장", "save"), createButton("취소", "cancel"));
+
+      li.append(input, select, actions);
       return li;
     }
 
