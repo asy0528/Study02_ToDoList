@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>할 일</title>
+  <title>할 일 관리</title>
   <style>
     :root {
       --bg: #f6f7f9;
@@ -34,7 +34,11 @@
       line-height: 1.5;
     }
 
+    /* 좁은 화면은 한 줄로 쌓고, 900px 이상이면 사이드바와 목록 2단 */
     .app {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
       max-width: 640px;
       margin: 0 auto;
       padding: 16px;
@@ -84,14 +88,10 @@
     }
 
     .progress {
-      display: flex;
-      align-items: center;
-      gap: 12px;
       margin: 12px 0 16px;
     }
 
     .progress-bar {
-      flex: 1;
       height: 10px;
       border-radius: 999px;
       background: var(--line);
@@ -106,7 +106,10 @@
     }
 
     #progress-text {
-      white-space: nowrap;
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.875rem;
       font-variant-numeric: tabular-nums;
     }
 
@@ -218,12 +221,34 @@
       text-align: center;
       color: var(--muted);
     }
+
+    @media (min-width: 900px) {
+      .app {
+        grid-template-columns: 300px minmax(0, 1fr);
+        gap: 40px;
+        align-items: start;
+        max-width: 1100px;
+        padding: 40px 32px;
+      }
+
+      /* 목록을 스크롤해도 날짜·진행률·입력줄은 자리를 지킨다 */
+      .side {
+        position: sticky;
+        top: 40px;
+      }
+
+      /* 사이드바가 좁으므로 입력줄은 세로로 쌓는다 */
+      #add-form {
+        flex-direction: column;
+      }
+    }
   </style>
 </head>
 <body>
-  <main class="app">
+  <div class="app">
+   <aside class="side">
     <header>
-      <h1>할 일</h1>
+      <h1>할 일 관리</h1>
       <div class="date-nav">
         <button type="button" id="prev-day" aria-label="이전 날">◀</button>
         <span id="current-date"></span>
@@ -252,10 +277,13 @@
       <button type="button" data-filter="personal">개인</button>
       <button type="button" data-filter="study">공부</button>
     </nav>
+   </aside>
 
+   <main>
     <ul id="task-list"></ul>
     <p id="empty-message"></p>
-  </main>
+   </main>
+  </div>
 
   <script>
     // ===== 상수 =====
@@ -379,12 +407,14 @@
     }
 
     // ===== 조회 =====
-    // 목록과 진행률이 모두 이 결과를 쓴다: 보고 있는 날짜 + 선택한 필터
+    // 목록과 진행률이 모두 이 결과를 쓴다: 보고 있는 날짜 + 선택한 필터, 최근에 만든 것이 위
     function getVisibleTasks() {
+      // 같은 밀리초에 만든 항목은 배열에서 뒤에 있는(나중에 추가한) 것이 위로 오도록 뒤집은 뒤 정렬한다
       return state.tasks
         .filter(t => t.date === state.selectedDate)
         .filter(t => state.filter === "all" || t.category === state.filter)
-        .sort((a, b) => a.createdAt - b.createdAt);
+        .reverse()
+        .sort((a, b) => b.createdAt - a.createdAt);
     }
 
     function getProgress(tasks) {
@@ -433,11 +463,22 @@
       const focused = els.taskList.contains(document.activeElement) ? document.activeElement : null;
       const focusedId = focused && focused.closest("li").dataset.id;
       const focusedAction = focused && focused.dataset.action;
+      // 편집 중에 다른 줄을 체크해도 입력하던 내용이 사라지지 않게 한다
+      const draft = els.taskList.querySelector(".editing");
+      const draftId = draft && draft.dataset.id;
+      const draftText = draft && draft.querySelector(".edit-text").value;
+      const draftCategory = draft && draft.querySelector(".edit-category").value;
 
       const tasks = getVisibleTasks();
       els.taskList.replaceChildren(...tasks.map(task =>
         task.id === state.editingId ? createEditItem(task) : createTaskItem(task)
       ));
+
+      const editing = els.taskList.querySelector(".editing");
+      if (editing && editing.dataset.id === draftId) {
+        editing.querySelector(".edit-text").value = draftText;
+        editing.querySelector(".edit-category").value = draftCategory;
+      }
 
       const editInput = els.taskList.querySelector(".edit-text");
       if (editInput) {
@@ -498,6 +539,13 @@
       li.className = "task editing";
       li.dataset.id = task.id;
 
+      // 편집 중에는 완료 상태를 바꾸지 않는다
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = task.done;
+      checkbox.disabled = true;
+      checkbox.setAttribute("aria-label", "완료");
+
       const input = document.createElement("input");
       input.type = "text";
       input.className = "edit-text";
@@ -516,7 +564,7 @@
       actions.className = "actions";
       actions.append(createButton("저장", "save"), createButton("취소", "cancel"));
 
-      li.append(input, select, actions);
+      li.append(checkbox, input, select, actions);
       return li;
     }
 
@@ -572,7 +620,7 @@
             cancelEdit();
             break;
           case "delete":
-            if (confirm("삭제할까요?")) deleteTask(id);
+            if (confirm("이 할 일을 삭제할까요?")) deleteTask(id);
             break;
           case "move-today":
             moveToToday(id);
