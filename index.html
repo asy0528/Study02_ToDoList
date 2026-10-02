@@ -20,6 +20,21 @@
       text-decoration: line-through;
       color: #6e7781;
     }
+
+    .progress-bar {
+      height: 10px;
+      background: #e6e8eb;
+    }
+
+    #progress-fill {
+      height: 100%;
+      background: #2da44e;
+    }
+
+    #filters button.active {
+      background: #1f2328;
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
@@ -148,29 +163,77 @@
       commit();
     }
 
+    // ===== 화면 상태 (저장하지 않음) =====
+    function changeDate(dateStr) {
+      state.selectedDate = dateStr;
+      state.editingId = null;
+      render();
+    }
+
+    function changeFilter(filter) {
+      state.filter = filter;
+      state.editingId = null;
+      render();
+    }
+
+    // ===== 조회 =====
+    // 목록과 진행률이 모두 이 결과를 쓴다: 보고 있는 날짜 + 선택한 필터
+    function getVisibleTasks() {
+      return state.tasks
+        .filter(t => t.date === state.selectedDate)
+        .filter(t => state.filter === "all" || t.category === state.filter)
+        .sort((a, b) => a.createdAt - b.createdAt);
+    }
+
+    function getProgress(tasks) {
+      const total = tasks.length;
+      const done = tasks.filter(t => t.done).length;
+      const percent = total === 0 ? 0 : Math.round(done / total * 100);
+      return { done, total, percent };
+    }
+
     // ===== 그리기 =====
     const els = {
       currentDate: document.getElementById("current-date"),
+      progressFill: document.getElementById("progress-fill"),
+      progressText: document.getElementById("progress-text"),
       addForm: document.getElementById("add-form"),
       newText: document.getElementById("new-text"),
       newCategory: document.getElementById("new-category"),
-      taskList: document.getElementById("task-list")
+      filters: document.getElementById("filters"),
+      taskList: document.getElementById("task-list"),
+      emptyMessage: document.getElementById("empty-message")
     };
 
     function render() {
       renderHeader();
+      renderFilters();
       renderList();
     }
 
     function renderHeader() {
+      const { done, total, percent } = getProgress(getVisibleTasks());
       els.currentDate.textContent = formatDate(state.selectedDate);
+      els.progressFill.style.width = percent + "%";
+      els.progressText.textContent = `${done} / ${total} (${percent}%)`;
+    }
+
+    function renderFilters() {
+      for (const button of els.filters.querySelectorAll("[data-filter]")) {
+        const active = button.dataset.filter === state.filter;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      }
     }
 
     function renderList() {
-      const tasks = state.tasks
-        .filter(t => t.date === state.selectedDate)
-        .sort((a, b) => a.createdAt - b.createdAt);
+      const tasks = getVisibleTasks();
       els.taskList.replaceChildren(...tasks.map(createTaskItem));
+
+      els.emptyMessage.hidden = tasks.length > 0;
+      els.emptyMessage.textContent = state.filter === "all"
+        ? "이 날의 할 일이 없습니다. 위에서 추가해 보세요."
+        : "이 카테고리에는 할 일이 없습니다.";
     }
 
     function createButton(label, action) {
@@ -206,6 +269,15 @@
 
     // ===== 이벤트 =====
     function bindEvents() {
+      document.getElementById("prev-day").addEventListener("click", () => changeDate(addDays(state.selectedDate, -1)));
+      document.getElementById("next-day").addEventListener("click", () => changeDate(addDays(state.selectedDate, 1)));
+      document.getElementById("today-btn").addEventListener("click", () => changeDate(todayString()));
+
+      els.filters.addEventListener("click", e => {
+        const button = e.target.closest("[data-filter]");
+        if (button) changeFilter(button.dataset.filter);
+      });
+
       // 버튼 클릭과 Enter가 같은 submit 경로로 들어온다
       els.addForm.addEventListener("submit", e => {
         e.preventDefault();
