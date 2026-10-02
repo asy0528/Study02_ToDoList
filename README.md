@@ -13,7 +13,7 @@
 | 구현 | 예정 |
 | 완료 기준 확인 | 예정 |
 
-아직 코드는 없다. 지금 저장소에는 PRD와 이 README만 있다.
+아직 코드는 없다. 지금 저장소에는 PRD, 구현용 단계별 프롬프트, 이 README가 있다.
 
 ## 무엇을 할 수 있나
 
@@ -24,7 +24,7 @@
 - 지난 날짜의 미완료 항목을 오늘로 옮기기
 - 새로고침이나 브라우저 재시작 후에도 그대로 남는 저장
 
-기능별 세부 규칙, 화면 구성, 데이터 형식, 완료 기준은 [PRD](docs/superpowers/specs/2026-10-02-todo-app-design.md)에 정리했다.
+기능별 세부 규칙, 화면 구성, 데이터 형식, 완료 기준은 [PRD.md](PRD.md)에 정리했다.
 
 ## 만드는 방식
 
@@ -44,8 +44,9 @@
 ```
 Study02_ToDoList/
 ├── README.md
-└── docs/superpowers/specs/
-    └── 2026-10-02-todo-app-design.md   # PRD
+├── PRD.md                                        # 요구사항, 화면, 데이터, 완료 기준
+└── docs/prompts/
+    └── 2026-10-02-implementation-prompts.md      # Claude Code용 5단계 구현 프롬프트
 ```
 
 ## 이 프로젝트에 대해
