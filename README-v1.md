@@ -15,7 +15,7 @@
 | 구현 | 예정 |
 | 완료 기준 확인 | 예정 |
 
-아직 코드는 없다. 지금 저장소에는 PRD, 구현용 단계별 프롬프트, 이 README가 있다.
+아직 코드는 없다. 지금 저장소에는 PRD와 이 README만 있다.
 
 ## 무엇을 할 수 있나
 
@@ -46,9 +46,7 @@
 ```
 Study02_ToDoList/
 ├── README.md
-├── PRD.md                                        # 요구사항, 화면, 데이터, 완료 기준
-└── docs/prompts/
-    └── 2026-10-02-implementation-prompts.md      # Claude Code용 5단계 구현 프롬프트
+└── PRD.md                                        # 요구사항, 화면, 데이터, 완료 기준
 ```
 
 ## 이 프로젝트에 대해

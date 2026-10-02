@@ -1,5 +1,7 @@
 # Study02_ToDoList
 
+> 구현 프롬프트(PROMPTS.md)를 만든 시점(구현 전)의 README다. 최신 내용은 [README.md](README.md)를 본다.
+
 하루치 할 일을 날짜별로 적고, 하나씩 지워 나가며 얼마나 했는지 확인하는 개인용 할 일 관리 앱이다. 할 일은 업무·개인·공부로 나뉘고, 못 끝낸 일은 버튼 하나로 오늘 목록에 옮겨 온다.
 
 `index.html` 하나를 브라우저로 열면 바로 돌아간다. 가입, 서버, 설치 과정이 없고 적은 내용은 그 브라우저의 localStorage에 저장된다.
@@ -9,11 +11,11 @@
 | 단계 | 상태 |
 |---|---|
 | 요구사항 정리 (PRD) | 완료 |
-| 구현 프롬프트 ([PROMPTS.md](PROMPTS.md)) | 완료 |
-| 구현 (`index.html`) | 완료 |
-| 완료 기준 확인 (PRD 10장 1~8) | 완료 |
+| 구현 프롬프트 (5단계) | 완료 |
+| 구현 | 예정 |
+| 완료 기준 확인 | 예정 |
 
-PRD의 기능 F-1 ~ F-9가 모두 들어가 있다.
+아직 코드는 없다. 지금 저장소에는 PRD, 5단계 구현 프롬프트, 이 README가 있다. 구현은 [PROMPTS.md](PROMPTS.md)를 1단계부터 Claude Code에 붙여 넣어 진행한다.
 
 ## 무엇을 할 수 있나
 
@@ -35,7 +37,7 @@ PRD의 기능 F-1 ~ F-9가 모두 들어가 있다.
 
 ## 써 보는 방법
 
-`index.html`을 더블클릭하면 된다. 인터넷 연결도 필요 없다.
+구현이 끝나면 `index.html`을 더블클릭하면 된다. 인터넷 연결도 필요 없다.
 
 데이터는 브라우저마다 따로 저장된다. 다른 브라우저나 다른 PC에서 열면 빈 목록으로 시작하고, 브라우저의 사이트 데이터를 지우면 할 일도 함께 지워진다.
 
@@ -43,14 +45,11 @@ PRD의 기능 F-1 ~ F-9가 모두 들어가 있다.
 
 ```
 Study02_ToDoList/
-├── index.html                                    # 앱 (HTML·CSS·JS 한 파일)
 ├── README.md
-├── README-v1.md                                  # PRD 작성 시점의 README
-├── README-v2.md                                  # 구현 프롬프트 작성 시점의 README
 ├── PRD.md                                        # 요구사항, 화면, 데이터, 완료 기준
 └── PROMPTS.md                                    # Claude Code용 5단계 구현 프롬프트
 ```
 
 ## 이 프로젝트에 대해
 
-AI 코딩 도구로 앱을 만드는 과정을 익히기 위한 두 번째 실습이다. Claude Code에 [Superpowers](https://github.com/obra/superpowers) 플러그인을 붙여, 질문에 답하며 요구사항을 좁히고(brainstorming) 그 결과를 PRD로 남겼다. 그다음 `writing-plans` 스킬로 PRD를 5단계 구현 프롬프트([PROMPTS.md](PROMPTS.md))로 나누고, 단계마다 테스트를 먼저 쓰고 구현하는 방식으로 앱을 완성했다.
+AI 코딩 도구로 앱을 만드는 과정을 익히기 위한 두 번째 실습이다. Claude Code에 [Superpowers](https://github.com/obra/superpowers) 플러그인을 붙여, 질문에 답하며 요구사항을 좁히고(brainstorming) 그 결과를 PRD로 남겼다. 이어서 `writing-plans` 스킬로 PRD를 5단계 구현 프롬프트로 나눴다. 다음 단계에서는 이 프롬프트로 코드를 작성한다.
