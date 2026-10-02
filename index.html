@@ -5,9 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>할 일</title>
   <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --text: #1f2328;
+      --muted: #6e7781;
+      --border: #d0d7de;
+      --line: #e6e8eb;
+      --accent: #0969da;
+      --progress: #2da44e;
+      --work-bg: #ddf4ff;
+      --work-text: #0550ae;
+      --personal-bg: #dafbe1;
+      --personal-text: #116329;
+      --study-bg: #fff1e5;
+      --study-text: #953800;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
     body {
       margin: 0;
+      background: var(--bg);
+      color: var(--text);
       font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+      line-height: 1.5;
     }
 
     .app {
@@ -16,24 +44,180 @@
       padding: 16px;
     }
 
-    .task.done .task-text {
-      text-decoration: line-through;
-      color: #6e7781;
+    h1 {
+      margin: 0 0 12px;
+      font-size: 1.5rem;
+    }
+
+    input[type="text"],
+    select,
+    button {
+      font: inherit;
+      color: inherit;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--bg);
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* 헤더: 날짜 이동과 진행률 */
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #current-date {
+      flex: 1;
+      text-align: center;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 12px 0 16px;
     }
 
     .progress-bar {
+      flex: 1;
       height: 10px;
-      background: #e6e8eb;
+      border-radius: 999px;
+      background: var(--line);
+      overflow: hidden;
     }
 
     #progress-fill {
+      width: 0;
       height: 100%;
-      background: #2da44e;
+      background: var(--progress);
+      transition: width 0.2s;
+    }
+
+    #progress-text {
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 입력줄 */
+    #add-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    #new-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    #add-form button[type="submit"] {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    /* 필터 탭 */
+    #filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 16px 0 8px;
     }
 
     #filters button.active {
-      background: #1f2328;
-      color: #ffffff;
+      border-color: var(--text);
+      background: var(--text);
+      color: var(--surface);
+    }
+
+    /* 목록 */
+    #task-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      background: var(--surface);
+      border-radius: 8px;
+    }
+
+    .task {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .task:last-child {
+      border-bottom: none;
+    }
+
+    .task-text,
+    .edit-text {
+      flex: 1 1 120px;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .task.done .task-text {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .badge-work {
+      background: var(--work-bg);
+      color: var(--work-text);
+    }
+
+    .badge-personal {
+      background: var(--personal-bg);
+      color: var(--personal-text);
+    }
+
+    .badge-study {
+      background: var(--study-bg);
+      color: var(--study-text);
+    }
+
+    /* 버튼 묶음은 함께 줄바꿈되고 오른쪽에 붙는다 */
+    .actions {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .task button {
+      padding: 2px 8px;
+      font-size: 0.875rem;
+    }
+
+    #empty-message {
+      margin: 0;
+      padding: 24px 0;
+      text-align: center;
+      color: var(--muted);
     }
   </style>
 </head>
@@ -151,10 +335,29 @@
       return true;
     }
 
+    function updateTask(id, text, category) {
+      const trimmed = text.trim();
+      if (!trimmed) return false;
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return false;
+      task.text = trimmed;
+      task.category = category;
+      state.editingId = null;
+      commit();
+      return true;
+    }
+
     function toggleTask(id) {
       const task = state.tasks.find(t => t.id === id);
       if (!task) return;
       task.done = !task.done;
+      commit();
+    }
+
+    function moveToToday(id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+      task.date = todayString();
       commit();
     }
 
@@ -227,8 +430,24 @@
     }
 
     function renderList() {
+      // 목록을 새로 만들면 포커스가 사라지므로, 포커스가 있던 줄과 버튼을 기억해 두었다가 되돌린다
+      const focused = els.taskList.contains(document.activeElement) ? document.activeElement : null;
+      const focusedId = focused && focused.closest("li").dataset.id;
+      const focusedAction = focused && focused.dataset.action;
+
       const tasks = getVisibleTasks();
-      els.taskList.replaceChildren(...tasks.map(createTaskItem));
+      els.taskList.replaceChildren(...tasks.map(task =>
+        task.id === state.editingId ? createEditItem(task) : createTaskItem(task)
+      ));
+
+      const editInput = els.taskList.querySelector(".edit-text");
+      if (editInput) {
+        editInput.focus();
+      } else if (focusedId) {
+        const li = [...els.taskList.children].find(item => item.dataset.id === focusedId);
+        const target = li && (li.querySelector(`[data-action="${focusedAction}"]`) || li.querySelector('[data-action="edit"]'));
+        if (target) target.focus();
+      }
 
       els.emptyMessage.hidden = tasks.length > 0;
       els.emptyMessage.textContent = state.filter === "all"
@@ -263,8 +482,52 @@
       badge.className = "badge badge-" + task.category;
       badge.textContent = CATEGORY_LABELS[task.category];
 
-      li.append(checkbox, text, badge, createButton("수정", "edit"), createButton("삭제", "delete"));
+      const actions = document.createElement("span");
+      actions.className = "actions";
+      // 오늘보다 이전 날짜의 미완료 항목만 오늘로 옮길 수 있다 ("YYYY-MM-DD"는 문자열 비교로 앞뒤를 가린다)
+      if (!task.done && task.date < todayString()) {
+        actions.append(createButton("오늘로", "move-today"));
+      }
+      actions.append(createButton("수정", "edit"), createButton("삭제", "delete"));
+
+      li.append(checkbox, text, badge, actions);
       return li;
+    }
+
+    function createEditItem(task) {
+      const li = document.createElement("li");
+      li.className = "task editing";
+      li.dataset.id = task.id;
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "edit-text";
+      input.value = task.text;
+      input.setAttribute("aria-label", "할 일 수정");
+
+      const select = document.createElement("select");
+      select.className = "edit-category";
+      select.setAttribute("aria-label", "카테고리");
+      for (const [value, label] of Object.entries(CATEGORY_LABELS)) {
+        select.add(new Option(label, value));
+      }
+      select.value = task.category;
+
+      const actions = document.createElement("span");
+      actions.className = "actions";
+      actions.append(createButton("저장", "save"), createButton("취소", "cancel"));
+
+      li.append(input, select, actions);
+      return li;
+    }
+
+    function saveEdit(li) {
+      updateTask(li.dataset.id, li.querySelector(".edit-text").value, li.querySelector(".edit-category").value);
+    }
+
+    function cancelEdit() {
+      state.editingId = null;
+      render();
     }
 
     // ===== 이벤트 =====
@@ -296,11 +559,39 @@
       els.taskList.addEventListener("click", e => {
         const button = e.target.closest("button[data-action]");
         if (!button) return;
-        const id = button.closest("li").dataset.id;
+        const li = button.closest("li");
+        const id = li.dataset.id;
         switch (button.dataset.action) {
+          case "edit":
+            state.editingId = id;
+            render();
+            break;
+          case "save":
+            saveEdit(li);
+            break;
+          case "cancel":
+            cancelEdit();
+            break;
           case "delete":
             if (confirm("삭제할까요?")) deleteTask(id);
             break;
+          case "move-today":
+            moveToToday(id);
+            break;
+        }
+      });
+
+      els.taskList.addEventListener("keydown", e => {
+        // 한글 조합 중 Enter는 글자를 확정하는 입력이라 저장으로 보지 않는다
+        if (!e.target.classList.contains("edit-text") || e.isComposing) return;
+        if (e.key === "Enter") {
+          // 저장 뒤 포커스가 [수정] 버튼으로 옮겨 가므로, 같은 Enter가 그 버튼을 누르지 않게 막는다
+          e.preventDefault();
+          saveEdit(e.target.closest("li"));
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          cancelEdit();
         }
       });
     }
