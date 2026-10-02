@@ -111,9 +111,32 @@
       render();
     }
 
+    // ===== 변경 =====
+    function createId() {
+      return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function addTask(text, category) {
+      const trimmed = text.trim();
+      if (!trimmed) return false;
+      state.tasks.push({
+        id: createId(),
+        text: trimmed,
+        category,
+        done: false,
+        date: state.selectedDate,
+        createdAt: Date.now()
+      });
+      commit();
+      return true;
+    }
+
     // ===== 그리기 =====
     const els = {
       currentDate: document.getElementById("current-date"),
+      addForm: document.getElementById("add-form"),
+      newText: document.getElementById("new-text"),
+      newCategory: document.getElementById("new-category"),
       taskList: document.getElementById("task-list")
     };
 
@@ -133,10 +156,24 @@
       els.taskList.replaceChildren(...tasks.map(createTaskItem));
     }
 
+    function createButton(label, action) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.dataset.action = action;
+      return button;
+    }
+
     function createTaskItem(task) {
       const li = document.createElement("li");
       li.className = "task";
       li.dataset.id = task.id;
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = task.done;
+      checkbox.dataset.action = "toggle";
+      checkbox.setAttribute("aria-label", "완료");
 
       const text = document.createElement("span");
       text.className = "task-text";
@@ -146,14 +183,27 @@
       badge.className = "badge badge-" + task.category;
       badge.textContent = CATEGORY_LABELS[task.category];
 
-      li.append(text, badge);
+      li.append(checkbox, text, badge, createButton("수정", "edit"), createButton("삭제", "delete"));
       return li;
+    }
+
+    // ===== 이벤트 =====
+    function bindEvents() {
+      // 버튼 클릭과 Enter가 같은 submit 경로로 들어온다
+      els.addForm.addEventListener("submit", e => {
+        e.preventDefault();
+        if (addTask(els.newText.value, els.newCategory.value)) {
+          els.newText.value = "";
+        }
+        els.newText.focus();
+      });
     }
 
     // ===== 시작 =====
     function init() {
       state.tasks = loadTasks();
       state.selectedDate = todayString();
+      bindEvents();
       render();
     }
 
