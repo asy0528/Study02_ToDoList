@@ -15,6 +15,11 @@
       margin: 0 auto;
       padding: 16px;
     }
+
+    .task.done .task-text {
+      text-decoration: line-through;
+      color: #6e7781;
+    }
   </style>
 </head>
 <body>
@@ -131,6 +136,18 @@
       return true;
     }
 
+    function toggleTask(id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+      task.done = !task.done;
+      commit();
+    }
+
+    function deleteTask(id) {
+      state.tasks = state.tasks.filter(t => t.id !== id);
+      commit();
+    }
+
     // ===== 그리기 =====
     const els = {
       currentDate: document.getElementById("current-date"),
@@ -166,7 +183,7 @@
 
     function createTaskItem(task) {
       const li = document.createElement("li");
-      li.className = "task";
+      li.className = "task" + (task.done ? " done" : "");
       li.dataset.id = task.id;
 
       const checkbox = document.createElement("input");
@@ -196,6 +213,23 @@
           els.newText.value = "";
         }
         els.newText.focus();
+      });
+
+      // 목록은 다시 그릴 때마다 새로 만들어지므로 <ul> 한 곳에서 받는다
+      els.taskList.addEventListener("change", e => {
+        const li = e.target.closest("li");
+        if (li && e.target.dataset.action === "toggle") toggleTask(li.dataset.id);
+      });
+
+      els.taskList.addEventListener("click", e => {
+        const button = e.target.closest("button[data-action]");
+        if (!button) return;
+        const id = button.closest("li").dataset.id;
+        switch (button.dataset.action) {
+          case "delete":
+            if (confirm("삭제할까요?")) deleteTask(id);
+            break;
+        }
       });
     }
 
