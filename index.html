@@ -140,6 +140,23 @@
       return true;
     }
 
+    function updateTask(id, text, category) {
+      const trimmed = text.trim();
+      if (!trimmed) return false;
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return false;
+      task.text = trimmed;
+      task.category = category;
+      state.editingId = null;
+      commit();
+      return true;
+    }
+
+    function deleteTask(id) {
+      state.tasks = state.tasks.filter(t => t.id !== id);
+      commit();
+    }
+
     function toggleTask(id) {
       const task = state.tasks.find(t => t.id === id);
       if (!task) return;
@@ -186,7 +203,11 @@
     }
 
     function renderList() {
-      els.taskList.replaceChildren(...getVisibleTasks().map(createTaskItem));
+      els.taskList.replaceChildren(...getVisibleTasks().map(task =>
+        task.id === state.editingId ? createEditItem(task) : createTaskItem(task)
+      ));
+      const editInput = els.taskList.querySelector(".edit-text");
+      if (editInput) editInput.focus();
     }
 
     function createButton(label, action) {
@@ -220,6 +241,38 @@
       return li;
     }
 
+    function createEditItem(task) {
+      const li = document.createElement("li");
+      li.className = "task editing";
+      li.dataset.id = task.id;
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "edit-text";
+      input.value = task.text;
+      input.setAttribute("aria-label", "할 일 수정");
+
+      const select = document.createElement("select");
+      select.className = "edit-category";
+      select.setAttribute("aria-label", "카테고리");
+      for (const [value, label] of Object.entries(CATEGORY_LABELS)) {
+        select.add(new Option(label, value));
+      }
+      select.value = task.category;
+
+      li.append(input, select, createButton("저장", "save"), createButton("취소", "cancel"));
+      return li;
+    }
+
+    function saveEdit(li) {
+      updateTask(li.dataset.id, li.querySelector(".edit-text").value, li.querySelector(".edit-category").value);
+    }
+
+    function cancelEdit() {
+      state.editingId = null;
+      render();
+    }
+
     // ===== 이벤트 =====
     function bindEvents() {
       els.addForm.addEventListener("submit", e => {
@@ -234,6 +287,34 @@
       els.taskList.addEventListener("change", e => {
         const li = e.target.closest("li");
         if (li && e.target.dataset.action === "toggle") toggleTask(li.dataset.id);
+      });
+
+      els.taskList.addEventListener("click", e => {
+        const button = e.target.closest("button[data-action]");
+        if (!button) return;
+        const li = button.closest("li");
+        const id = li.dataset.id;
+        switch (button.dataset.action) {
+          case "edit":
+            state.editingId = id;
+            render();
+            break;
+          case "save":
+            saveEdit(li);
+            break;
+          case "cancel":
+            cancelEdit();
+            break;
+          case "delete":
+            if (confirm("삭제할까요?")) deleteTask(id);
+            break;
+        }
+      });
+
+      els.taskList.addEventListener("keydown", e => {
+        if (!e.target.classList.contains("edit-text")) return;
+        if (e.key === "Enter") saveEdit(e.target.closest("li"));
+        if (e.key === "Escape") cancelEdit();
       });
     }
 
