@@ -13,13 +13,9 @@
       --border: #d0d7de;
       --line: #e6e8eb;
       --accent: #0969da;
-      --progress: #2da44e;
-      --work-bg: #ddf4ff;
-      --work-text: #0550ae;
-      --personal-bg: #dafbe1;
-      --personal-text: #116329;
-      --study-bg: #fff1e5;
-      --study-text: #953800;
+      --work: #0969da;
+      --personal: #1a7f37;
+      --study: #bc4c00;
     }
 
     * {
@@ -105,7 +101,7 @@
     #progress-fill {
       width: 0;
       height: 100%;
-      background: var(--progress);
+      background: var(--accent);
       transition: width 0.2s;
     }
 
@@ -139,10 +135,15 @@
       margin: 16px 0 8px;
     }
 
+    #filters button {
+      padding: 4px 14px;
+      border-radius: 999px;
+    }
+
     #filters button.active {
-      border-color: var(--text);
-      background: var(--text);
-      color: var(--surface);
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #ffffff;
     }
 
     /* 목록 */
@@ -180,25 +181,23 @@
     }
 
     .badge {
-      padding: 2px 8px;
+      padding: 2px 10px;
       border-radius: 999px;
       font-size: 0.75rem;
+      color: #ffffff;
       white-space: nowrap;
     }
 
     .badge-work {
-      background: var(--work-bg);
-      color: var(--work-text);
+      background: var(--work);
     }
 
     .badge-personal {
-      background: var(--personal-bg);
-      color: var(--personal-text);
+      background: var(--personal);
     }
 
     .badge-study {
-      background: var(--study-bg);
-      color: var(--study-text);
+      background: var(--study);
     }
 
     /* 버튼 묶음은 함께 줄바꿈되고 오른쪽에 붙는다 */
