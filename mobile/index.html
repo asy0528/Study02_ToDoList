@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>할 일 관리</title>
+  <title>할 일 관리 (모바일)</title>
   <style>
     :root {
       --bg: #f6f7f9;
@@ -34,7 +34,7 @@
       line-height: 1.5;
     }
 
-    /* 좁은 화면은 한 줄로 쌓고, 900px 이상이면 사이드바와 목록 2단 */
+    /* 모바일 버전: 화면 폭과 상관없이 위에서 아래로 한 줄로 쌓는다 (넓은 화면 2단은 ../index.html) */
     .app {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -220,37 +220,6 @@
       padding: 24px 0;
       text-align: center;
       color: var(--muted);
-    }
-
-    @media (min-width: 900px) {
-      .app {
-        /* 카드 안쪽 여백(20px × 2)을 빼고도 날짜와 필터 탭이 한 줄에 들어가는 폭 */
-        grid-template-columns: 340px minmax(0, 1fr);
-        gap: 40px;
-        align-items: start;
-        max-width: 1100px;
-        padding: 40px 32px;
-      }
-
-      /* 목록을 스크롤해도 날짜·진행률·입력줄은 자리를 지킨다. 목록과 구분되도록 흰 카드로 띄운다 */
-      .side {
-        position: sticky;
-        top: 40px;
-        padding: 20px;
-        border-radius: 12px;
-        background: var(--surface);
-        box-shadow: 0 1px 3px rgba(31, 35, 40, 0.08);
-      }
-
-      /* 넓은 화면에서는 목록 줄을 조금 더 여유 있게 */
-      .task {
-        padding: 14px 16px;
-      }
-
-      /* 사이드바가 좁으므로 입력줄은 세로로 쌓는다 */
-      #add-form {
-        flex-direction: column;
-      }
     }
   </style>
 </head>
