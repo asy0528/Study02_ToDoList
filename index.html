@@ -164,6 +164,26 @@
       commit();
     }
 
+    function moveToToday(id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (!task) return;
+      task.date = todayString();
+      commit();
+    }
+
+    // ===== 화면 상태 (저장하지 않음) =====
+    function changeDate(dateStr) {
+      state.selectedDate = dateStr;
+      state.editingId = null;
+      render();
+    }
+
+    function changeFilter(filter) {
+      state.filter = filter;
+      state.editingId = null;
+      render();
+    }
+
     // ===== 조회 =====
     function getVisibleTasks() {
       return state.tasks
@@ -187,12 +207,23 @@
       addForm: document.getElementById("add-form"),
       newText: document.getElementById("new-text"),
       newCategory: document.getElementById("new-category"),
-      taskList: document.getElementById("task-list")
+      filters: document.getElementById("filters"),
+      taskList: document.getElementById("task-list"),
+      emptyMessage: document.getElementById("empty-message")
     };
 
     function render() {
       renderHeader();
+      renderFilters();
       renderList();
+    }
+
+    function renderFilters() {
+      for (const button of els.filters.querySelectorAll("[data-filter]")) {
+        const active = button.dataset.filter === state.filter;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      }
     }
 
     function renderHeader() {
@@ -203,11 +234,17 @@
     }
 
     function renderList() {
-      els.taskList.replaceChildren(...getVisibleTasks().map(task =>
+      const tasks = getVisibleTasks();
+      els.taskList.replaceChildren(...tasks.map(task =>
         task.id === state.editingId ? createEditItem(task) : createTaskItem(task)
       ));
       const editInput = els.taskList.querySelector(".edit-text");
       if (editInput) editInput.focus();
+
+      els.emptyMessage.hidden = tasks.length > 0;
+      els.emptyMessage.textContent = state.filter === "all"
+        ? "이 날의 할 일이 없습니다. 위에서 추가해 보세요."
+        : "이 카테고리에는 할 일이 없습니다.";
     }
 
     function createButton(label, action) {
@@ -237,7 +274,12 @@
       badge.className = "badge badge-" + task.category;
       badge.textContent = CATEGORY_LABELS[task.category];
 
-      li.append(checkbox, text, badge, createButton("수정", "edit"), createButton("삭제", "delete"));
+      li.append(checkbox, text, badge);
+      // 오늘보다 이전 날짜의 미완료 항목만 오늘로 옮길 수 있다 ("YYYY-MM-DD"는 문자열 비교로 앞뒤를 가린다)
+      if (!task.done && task.date < todayString()) {
+        li.append(createButton("오늘로", "move-today"));
+      }
+      li.append(createButton("수정", "edit"), createButton("삭제", "delete"));
       return li;
     }
 
@@ -275,6 +317,15 @@
 
     // ===== 이벤트 =====
     function bindEvents() {
+      document.getElementById("prev-day").addEventListener("click", () => changeDate(addDays(state.selectedDate, -1)));
+      document.getElementById("next-day").addEventListener("click", () => changeDate(addDays(state.selectedDate, 1)));
+      document.getElementById("today-btn").addEventListener("click", () => changeDate(todayString()));
+
+      els.filters.addEventListener("click", e => {
+        const button = e.target.closest("[data-filter]");
+        if (button) changeFilter(button.dataset.filter);
+      });
+
       els.addForm.addEventListener("submit", e => {
         e.preventDefault();
         if (addTask(els.newText.value, els.newCategory.value)) {
@@ -307,6 +358,9 @@
             break;
           case "delete":
             if (confirm("삭제할까요?")) deleteTask(id);
+            break;
+          case "move-today":
+            moveToToday(id);
             break;
         }
       });
