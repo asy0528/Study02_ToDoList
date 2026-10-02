@@ -584,9 +584,17 @@
       });
 
       els.taskList.addEventListener("keydown", e => {
-        if (!e.target.classList.contains("edit-text")) return;
-        if (e.key === "Enter") saveEdit(e.target.closest("li"));
-        if (e.key === "Escape") cancelEdit();
+        // 한글 조합 중 Enter는 글자를 확정하는 입력이라 저장으로 보지 않는다
+        if (!e.target.classList.contains("edit-text") || e.isComposing) return;
+        if (e.key === "Enter") {
+          // 저장 뒤 포커스가 [수정] 버튼으로 옮겨 가므로, 같은 Enter가 그 버튼을 누르지 않게 막는다
+          e.preventDefault();
+          saveEdit(e.target.closest("li"));
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          cancelEdit();
+        }
       });
     }
 
