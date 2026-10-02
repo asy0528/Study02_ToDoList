@@ -433,12 +433,24 @@
     }
 
     function renderList() {
+      // 목록을 새로 만들면 포커스가 사라지므로, 포커스가 있던 줄과 버튼을 기억해 두었다가 되돌린다
+      const focused = els.taskList.contains(document.activeElement) ? document.activeElement : null;
+      const focusedId = focused && focused.closest("li").dataset.id;
+      const focusedAction = focused && focused.dataset.action;
+
       const tasks = getVisibleTasks();
       els.taskList.replaceChildren(...tasks.map(task =>
         task.id === state.editingId ? createEditItem(task) : createTaskItem(task)
       ));
+
       const editInput = els.taskList.querySelector(".edit-text");
-      if (editInput) editInput.focus();
+      if (editInput) {
+        editInput.focus();
+      } else if (focusedId) {
+        const li = [...els.taskList.children].find(item => item.dataset.id === focusedId);
+        const target = li && (li.querySelector(`[data-action="${focusedAction}"]`) || li.querySelector('[data-action="edit"]'));
+        if (target) target.focus();
+      }
 
       els.emptyMessage.hidden = tasks.length > 0;
       els.emptyMessage.textContent = state.filter === "all"
